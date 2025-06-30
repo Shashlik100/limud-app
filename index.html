@@ -276,28 +276,27 @@
     }
 
     function handleTimerBtn(id) {
-      if (runningTimers[id]) {
-        clearInterval(runningTimers[id].intervalId);
-        let elapsed = Math.floor((Date.now() - runningTimers[id].startTime) / 1000);
-        let mins = Math.max(1, Math.round(elapsed / 60));
-        let entries = getEntries().map(e =>
-  e.id === id ? { ...e, minutes: mins } : e
-);
-
-        setEntries(entries);
-        delete runningTimers[id];
-        renderEntries(selectedCategory);
-        updateCharts();
-      } else {
-        runningTimers[id] = {
-          startTime: Date.now(),
-          intervalId: null
-        };
-        updateRowTimerDisplay(id);
-        runningTimers[id].intervalId = setInterval(() => updateRowTimerDisplay(id), 1000);
-        document.getElementById("timer-btn-" + id).textContent = "סיים";
-      }
-    }
+  if (runningTimers[id]) {
+    clearInterval(runningTimers[id].intervalId);
+    let elapsed = Math.floor((Date.now() - runningTimers[id].startTime) / 1000);
+    let mins = Math.max(1, Math.round(elapsed / 60));
+    let entries = getEntries().map(e =>
+      e.id === id ? { ...e, minutes: mins } : e
+    );
+    setEntries(entries);
+    delete runningTimers[id];
+    renderEntries(selectedCategory);
+    updateCharts();
+  } else {
+    runningTimers[id] = {
+      startTime: Date.now(),
+      intervalId: null
+    };
+    updateRowTimerDisplay(id);
+    runningTimers[id].intervalId = setInterval(() => updateRowTimerDisplay(id), 1000);
+    document.getElementById("timer-btn-" + id).textContent = "סיים";
+  }
+}
 
     function updateRowTimerDisplay(id) {
       if (!runningTimers[id]) return;
