@@ -52,8 +52,17 @@
     ::-webkit-scrollbar-thumb { background: #c3c6d1; border-radius: 7px; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- hebrew-date ספריה (נטען כאן!) -->
-  <script src="https://cdn.jsdelivr.net/npm/@hebcal/core/dist/bundle.min.js"></script>
+  <script>
+    // טוען את Hebcal רק ואז מפעיל את ה־init
+    function loadHebcalAndInit() {
+      var script = document.createElement('script');
+      script.src = "https://cdn.jsdelivr.net/npm/@hebcal/core/dist/bundle.min.js";
+      script.onload = function() {
+        init(); // מפעיל רק אחרי ש-Hebcal נטען!
+      };
+      document.head.appendChild(script);
+    }
+  </script>
 </head>
 <body>
   <div class="app-container">
@@ -80,7 +89,7 @@
       } else {
         try {
           const [year, month, day] = dateStr.split("-");
-          // בדיקה אם Hebcal קיים
+          // אם Hebcal לא קיים - החזר טקסט שגיאה
           if (typeof Hebcal !== "undefined" && Hebcal.HDate) {
             const dt = new Hebcal.HDate(new Date(+year, +month-1, +day));
             return dt.renderHebrewDate("h");
@@ -100,7 +109,7 @@
     ];
     let selectedCategory = null;
     let pieChart, lineChart;
-    let runningTimers = {}; // {id: {startTime, intervalId}}
+    let runningTimers = {};
 
     // נתונים
     function getCategories() {
@@ -268,178 +277,162 @@
 
     function handleTimerBtn(id) {
       if (runningTimers[id]) {
-        // סיים טיימר
         clearInterval(runningTimers[id].intervalId);
         let elapsed = Math.floor((Date.now() - runningTimers[id].startTime) / 1000);
         let mins = Math.max(1, Math.round(elapsed / 60));
-        // עדכון שדה דקות
         let entries = getEntries().map(e =>
-          e.id
-
-\=== id ? { ...e, minutes: mins } : e
-);
-setEntries(entries);
-delete runningTimers\[id];
-renderEntries(selectedCategory); // עדכון טבלה
-updateCharts();
-} else {
-// התחל טיימר
-runningTimers\[id] = {
-startTime: Date.now(),
-intervalId: null
-};
-updateRowTimerDisplay(id);
-runningTimers\[id].intervalId = setInterval(() => updateRowTimerDisplay(id), 1000);
-// עדכון כפתור
-document.getElementById("timer-btn-" + id).textContent = "סיים";
-}
-}
-
-```
-function updateRowTimerDisplay(id) {
-  if (!runningTimers[id]) return;
-  let elapsed = Math.floor((Date.now() - runningTimers[id].startTime) / 1000);
-  let hrs = Math.floor(elapsed / 3600);
-  let mins = Math.floor((elapsed % 3600) / 60);
-  let secs = elapsed % 60;
-  let el = document.getElementById("timer-show-" + id);
-  if (el) el.textContent = `${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
-}
-
-// טופס הוספה/עריכה עם שדה דקות רגיל
-function openEntryModal(editId=null, forceCategory=null) {
-  let cats = getCategories();
-  let entry = editId!==null ? getEntries().find(e=>e.id===editId) : {};
-  let modal = document.createElement('div');
-  modal.className = "modal-bg";
-  modal.innerHTML = `<form class="modal" id="entryForm">
-    <label>קטגוריה
-      <select id="cat-sel" required ${forceCategory?'disabled':''}>
-        ${cats.map(cat=>
-          `<option ${((entry.category===cat)||forceCategory===cat)?'selected':''}>${cat}</option>`
-        ).join("")}
-      </select>
-    </label>
-    <label>תאריך
-      <input type="date" id="date-inp" required value="${entry.date||new Date().toISOString().slice(0,10)}">
-    </label>
-    <label>ספר/נושא
-      <input type="text" id="title-inp" maxlength="24" required value="${entry.title||''}">
-    </label>
-    <label>פרק/דף
-      <input type="text" id="unit-inp" maxlength="14" value="${entry.unit||''}">
-    </label>
-    <label>דקות
-      <input type="number" id="minutes-inp" min="1" max="999" value="${entry.minutes||''}">
-    </label>
-    <label>הערות
-      <textarea id="notes-inp" maxlength="100">${entry.notes||''}</textarea>
-    </label>
-    <div class="modal-btns">
-      <button type="submit" class="ok-btn">${editId!==null?"שמור":"הוסף"}</button>
-      <button type="button" class="cancel-btn" onclick="this.closest('.modal-bg').remove()">ביטול</button>
-    </div>
-  </form>`;
-  document.body.appendChild(modal);
-
-  document.getElementById('entryForm').onsubmit = function(e){
-    e.preventDefault();
-    let ent = {
-      category: forceCategory||document.getElementById('cat-sel').value,
-      date: document.getElementById('date-inp').value,
-      title: document.getElementById('title-inp').value,
-      unit: document.getElementById('unit-inp').value,
-      minutes: +document.getElementById('minutes-inp').value || null,
-      notes: document.getElementById('notes-inp').value,
-      id: editId!==null ? editId : Date.now()
-    };
-    let entries = getEntries();
-    if(editId!==null) {
-      entries = entries.map(e => e.id===editId ? ent : e);
-    } else {
-      entries.push(ent);
+          e.id === id ? { ...e, minutes: mins } : e
+        );
+        setEntries(entries);
+        delete runningTimers[id];
+        renderEntries(selectedCategory);
+        updateCharts();
+      } else {
+        runningTimers[id] = {
+          startTime: Date.now(),
+          intervalId: null
+        };
+        updateRowTimerDisplay(id);
+        runningTimers[id].intervalId = setInterval(() => updateRowTimerDisplay(id), 1000);
+        document.getElementById("timer-btn-" + id).textContent = "סיים";
+      }
     }
-    setEntries(entries);
-    updateCharts();
-    renderMain();
-    modal.remove();
-  };
-}
-function openEntryModalForCat(cat) {
-  openEntryModal(null, cat);
-}
-function editEntry(id) { openEntryModal(id); }
-function delEntry(id) {
-  if(!confirm("למחוק לימוד זה?")) return;
-  let entries = getEntries().filter(e=>e.id!==id);
-  setEntries(entries);
-  updateCharts();
-  renderMain();
-}
 
-// גרפים
-function updateCharts() {
-  let entries = getEntries();
-  let byCat = {};
-  getCategories().forEach(cat=>byCat[cat]=0);
-  entries.forEach(e=>byCat[e.category]=(byCat[e.category]||0)+(+e.minutes||0));
-  let pieData = {
-    labels: Object.keys(byCat),
-    datasets: [{
-      data: Object.values(byCat),
-      backgroundColor: [
-        "#63b3ed","#f687b3","#68d391","#f6ad55","#90cdf4","#fbb6ce","#4fd1c5","#feb2b2","#cbd5e1","#fef08a","#b5f4ff"
-      ],
-    }]
-  };
-  if(document.getElementById('pieChart')) {
-    if(pieChart) pieChart.destroy();
-    pieChart = new Chart(document.getElementById('pieChart'), {
-      type: 'pie',
-      data: pieData,
-      options: {
-        plugins: { legend: { position: 'bottom', labels: { font: { family: 'Heebo,Arial', size:14 }}}},
+    function updateRowTimerDisplay(id) {
+      if (!runningTimers[id]) return;
+      let elapsed = Math.floor((Date.now() - runningTimers[id].startTime) / 1000);
+      let hrs = Math.floor(elapsed / 3600);
+      let mins = Math.floor((elapsed % 3600) / 60);
+      let secs = elapsed % 60;
+      let el = document.getElementById("timer-show-" + id);
+      if (el) el.textContent = `${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+    }
+
+    function openEntryModal(editId=null, forceCategory=null) {
+      let cats = getCategories();
+      let entry = editId!==null ? getEntries().find(e=>e.id===editId) : {};
+      let modal = document.createElement('div');
+      modal.className = "modal-bg";
+      modal.innerHTML = `<form class="modal" id="entryForm">
+        <label>קטגוריה
+          <select id="cat-sel" required ${forceCategory?'disabled':''}>
+            ${cats.map(cat=>
+              `<option ${((entry.category===cat)||forceCategory===cat)?'selected':''}>${cat}</option>`
+            ).join("")}
+          </select>
+        </label>
+        <label>תאריך
+          <input type="date" id="date-inp" required value="${entry.date||new Date().toISOString().slice(0,10)}">
+        </label>
+        <label>ספר/נושא
+          <input type="text" id="title-inp" maxlength="24" required value="${entry.title||''}">
+        </label>
+        <label>פרק/דף
+          <input type="text" id="unit-inp" maxlength="14" value="${entry.unit||''}">
+        </label>
+        <label>דקות
+          <input type="number" id="minutes-inp" min="1" max="999" value="${entry.minutes||''}">
+        </label>
+        <label>הערות
+          <textarea id="notes-inp" maxlength="100">${entry.notes||''}</textarea>
+        </label>
+        <div class="modal-btns">
+          <button type="submit" class="ok-btn">${editId!==null?"שמור":"הוסף"}</button>
+          <button type="button" class="cancel-btn" onclick="this.closest('.modal-bg').remove()">ביטול</button>
+        </div>
+      </form>`;
+      document.body.appendChild(modal);
+
+      document.getElementById('entryForm').onsubmit = function(e){
+        e.preventDefault();
+        let ent = {
+          category: forceCategory||document.getElementById('cat-sel').value,
+          date: document.getElementById('date-inp').value,
+          title: document.getElementById('title-inp').value,
+          unit: document.getElementById('unit-inp').value,
+          minutes: +document.getElementById('minutes-inp').value || null,
+          notes: document.getElementById('notes-inp').value,
+          id: editId!==null ? editId : Date.now()
+        };
+        let entries = getEntries();
+        if(editId!==null) {
+          entries = entries.map(e => e.id===editId ? ent : e);
+        } else {
+          entries.push(ent);
+        }
+        setEntries(entries);
+        updateCharts();
+        renderMain();
+        modal.remove();
+      };
+    }
+    function openEntryModalForCat(cat) {
+      openEntryModal(null, cat);
+    }
+    function editEntry(id) { openEntryModal(id); }
+    function delEntry(id) {
+      if(!confirm("למחוק לימוד זה?")) return;
+      let entries = getEntries().filter(e=>e.id!==id);
+      setEntries(entries);
+      updateCharts();
+      renderMain();
+    }
+
+    function updateCharts() {
+      let entries = getEntries();
+      let byCat = {};
+      getCategories().forEach(cat=>byCat[cat]=0);
+      entries.forEach(e=>byCat[e.category]=(byCat[e.category]||0)+(+e.minutes||0));
+      let pieData = {
+        labels: Object.keys(byCat),
+        datasets: [{
+          data: Object.values(byCat),
+          backgroundColor: [
+            "#63b3ed","#f687b3","#68d391","#f6ad55","#90cdf4","#fbb6ce","#4fd1c5","#feb2b2","#cbd5e1","#fef08a","#b5f4ff"
+          ],
+        }]
+      };
+      if(document.getElementById('pieChart')) {
+        if(pieChart) pieChart.destroy();
+        pieChart = new Chart(document.getElementById('pieChart'), {
+          type: 'pie',
+          data: pieData,
+          options: {
+            plugins: { legend: { position: 'bottom', labels: { font: { family: 'Heebo,Arial', size:14 }}}},
+          }
+        });
       }
-    });
-  }
-  let byDate = {};
-  entries.forEach(e=>{
-    byDate[e.date]= (byDate[e.date]||0) + (+e.minutes||0);
-  });
-  let dates = Object.keys(byDate).sort();
-  let lineData = {
-    labels: dates,
-    datasets: [{
-      label: 'דקות לימוד',
-      data: dates.map(d=>byDate[d]),
-      fill: false,
-      borderColor: "#4299e1",
-      tension: 0.3,
-      pointRadius: 5,
-    }]
-  };
-  if(document.getElementById('lineChart')) {
-    if(lineChart) lineChart.destroy();
-    lineChart = new Chart(document.getElementById('lineChart'), {
-      type: 'line',
-      data: lineData,
-      options: {
-        plugins: { legend: { display: false }},
-        scales: { y: { beginAtZero: true }},
+      let byDate = {};
+      entries.forEach(e=>{
+        byDate[e.date]= (byDate[e.date]||0) + (+e.minutes||0);
+      });
+      let dates = Object.keys(byDate).sort();
+      let lineData = {
+        labels: dates,
+        datasets: [{
+          label: 'דקות לימוד',
+          data: dates.map(d=>byDate[d]),
+          fill: false,
+          borderColor: "#4299e1",
+          tension: 0.3,
+          pointRadius: 5,
+        }]
+      };
+      if(document.getElementById('lineChart')) {
+        if(lineChart) lineChart.destroy();
+        lineChart = new Chart(document.getElementById('lineChart'), {
+          type: 'line',
+          data: lineData,
+          options: {
+            plugins: { legend: { display: false }},
+            scales: { y: { beginAtZero: true }},
+          }
+        });
       }
-    });
-  }
-}
+    }
 
-// הפעלה
-function init() {
-  renderCategories();
-  renderMain();
-  updateCharts();
-}
-window.onload = init;
-```
-
+    // במקום window.onload = init;
+    loadHebcalAndInit();
   </script>
 </body>
 </html>
