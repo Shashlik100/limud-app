@@ -281,8 +281,9 @@
         let elapsed = Math.floor((Date.now() - runningTimers[id].startTime) / 1000);
         let mins = Math.max(1, Math.round(elapsed / 60));
         let entries = getEntries().map(e =>
-          e.id === id ? { ...e, minutes: mins } : e
-        );
+  e.id === id ? { ...e, minutes: mins } : e
+);
+
         setEntries(entries);
         delete runningTimers[id];
         renderEntries(selectedCategory);
