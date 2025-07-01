@@ -28,33 +28,25 @@
   <script>
     // מציג תאריך עברי/לועזי
     let useHebrewDates = false;
-   function formatDate(dateStr) {
-  if(!dateStr) return "";
-  if (!useHebrewDates) {
-    const [year, month, day] = dateStr.split("-");
-    return `${day}-${month}-${year}`;
-  } else {
-    try {
-      const [year, month, day] = dateStr.split("-");
-      // בדיקה שהתאריך תקין (הכל מספרים, יש 3 חלקים)
-      if (
-        !year || !month || !day ||
-        isNaN(+year) || isNaN(+month) || isNaN(+day)
-      ) {
-        return "[שגיאה בתאריך]";
-      }
-      // בדיקה שהספריה טעונה
-      if (typeof Hebcal === "object" && typeof Hebcal.HDate === "function") {
-        const dt = new Hebcal.HDate(new Date(+year, +month-1, +day));
-        return dt.renderHebrewDate("h");
+    function formatDate(dateStr) {
+      if (!dateStr) return "";
+      if (!useHebrewDates) {
+        const [year, month, day] = dateStr.split("-");
+        return `${day}-${month}-${year}`;
       } else {
-        return "[Hebcal לא נטען]";
+        try {
+          // Hebcal צריך להיות טעון - בודקים!
+          if (typeof Hebcal === "object" && typeof Hebcal.HDate === "function") {
+            const [year, month, day] = dateStr.split("-");
+            // יוצרים תאריך ומציגים עברית
+            const dt = new Hebcal.HDate(new Date(+year, +month-1, +day));
+            return dt.renderHebrewDate("h");
+          } else {
+            return "[Hebcal לא נטען]";
+          }
+        } catch(e) { return "[שגיאה בתאריך]"; }
       }
-    } catch(e) {
-      return "[שגיאה בתאריך]";
     }
-  }
-}
 
     // שאר הקוד שלך בדיוק כפי שהוא:
     const DEFAULT_CATEGORIES = [
