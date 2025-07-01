@@ -1,3 +1,8 @@
+:
+
+זה הקוד תבדוק אותו 
+
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -6,15 +11,57 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { margin: 0; font-family: 'Heebo', Arial, sans-serif; background: #f8fafc; color: #1a202c; direction: rtl; }
-    /* ... (ה- CSS שלך, לא נוגע) ... */
+    .app-container { display: flex; min-height: 100vh; }
+    .sidebar { width: 230px; background: #2d3748; color: #fff; display: flex; flex-direction: column; align-items: stretch; padding: 0; box-shadow: 2px 0 6px #0001; z-index: 1;}
+    .sidebar h2 { margin: 0; padding: 28px 0 14px 0; text-align: center; letter-spacing: 1px; font-size: 1.2em; font-weight: 800; background: #1a202c;}
+    .categories { flex: 1; overflow-y: auto; padding-bottom: 16px; }
+    .category { padding: 12px 24px; cursor: pointer; border-right: 6px solid transparent; font-size: 1.1em; transition: background 0.18s, border-color 0.18s; display: flex; align-items: center; justify-content: space-between;}
+    .category.selected { background: #4fd1c5; color: #222; border-right: 6px solid #319795;}
+    .category .remove-btn { background: transparent; border: none; color: #e53e3e; cursor: pointer; margin-right: 8px; font-size: 1.1em; display: none;}
+    .category.custom .remove-btn { display: inline;}
+    .add-category-form { display: flex; flex-direction: row-reverse; gap: 6px; padding: 12px 18px 16px 18px; border-top: 1px solid #3a4048; background: #23272f;}
+    .add-category-form input { flex: 1; padding: 6px 10px; font-size: 1em; border-radius: 6px; border: none; outline: none;}
+    .add-category-form button { background: #38b2ac; border: none; color: #fff; font-weight: bold; border-radius: 6px; padding: 6px 13px; cursor: pointer; transition: background 0.18s;}
+    .add-category-form button:hover { background: #319795;}
+    .main { flex: 1; display: flex; flex-direction: column; padding: 0 0 32px 0; overflow-x: hidden;}
+    .header { padding: 22px 34px 8px 0; font-size: 2.1em; font-weight: bold; color: #283048; letter-spacing: 0.03em;}
+    .dashboard-graphs { display: flex; gap: 32px; padding: 8px 40px 18px 40px; flex-wrap: wrap; justify-content: flex-start;}
+    .dashboard-graphs > div { background: #fff; border-radius: 20px; box-shadow: 0 2px 8px #0001; padding: 18px 12px 8px 12px; min-width: 300px; min-height: 290px; flex: 1 1 350px; display: flex; flex-direction: column; align-items: center;}
+    .add-btn { background: #4299e1; color: #fff; border: none; padding: 7px 16px; border-radius: 10px; font-size: 1.13em; font-weight: 700; margin: 12px 48px 8px 0; cursor: pointer; transition: background 0.18s; box-shadow: 0 2px 8px #0001;}
+    .add-btn:hover { background: #3182ce; }
+    .entries-table-container { background: #fff; border-radius: 16px; margin: 20px 40px 0 40px; padding: 10px 0; box-shadow: 0 2px 12px #0001; overflow-x: auto;}
+    .toggle-date-btn { background: #f6ad55; color: #222; border: none; padding: 6px 14px; border-radius: 8px; font-size: 1em; font-weight: 700; cursor: pointer; margin: 0 0 8px 0; transition: background 0.18s;}
+    .toggle-date-btn:hover { background: #fbbf24; }
+    table { width: 100%; border-collapse: collapse; font-size: 1.03em; background: #fff;}
+    thead { background: #e6fffa;}
+    th, td { padding: 8px 12px; text-align: right; border-bottom: 1px solid #f1f1f1;}
+    th { font-weight: 700;}
+    tr:last-child td { border-bottom: none;}
+    .edit-btn, .del-btn { background: transparent; border: none; font-size: 1.13em; cursor: pointer; margin-left: 8px;}
+    .edit-btn { color: #319795;}
+    .del-btn { color: #e53e3e;}
+    .timer-btn { background:#4299e1; color:#fff; padding:3px 9px; border-radius:7px; border:none; cursor:pointer; font-size:1em; margin-right:5px;}
+    .modal-bg { position: fixed; top: 0; right: 0; left: 0; bottom: 0; background: #0009; display: flex; align-items: center; justify-content: center; z-index: 10;}
+    .modal { background: #fff; border-radius: 18px; min-width: 310px; max-width: 95vw; padding: 26px 26px 18px 26px; box-shadow: 0 4px 20px #0002; animation: fadeIn 0.24s;}
+    @keyframes fadeIn { from { opacity: 0; } }
+    .modal label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 1.03em;}
+    .modal input, .modal textarea { width: 100%; margin-bottom: 16px; padding: 8px 10px; border-radius: 7px; border: 1px solid #d3e0ee; font-size: 1em; box-sizing: border-box;}
+    .modal textarea { resize: vertical; min-height: 60px; }
+    .modal-btns { display: flex; justify-content: flex-end; gap: 10px;}
+    .modal-btns button { padding: 7px 16px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 1.02em;}
+    .modal-btns .ok-btn { background: #38b2ac; color: #fff;}
+    .modal-btns .cancel-btn { background: #f2f2f2; color: #222;}
+    @media (max-width: 900px) { .dashboard-graphs { flex-direction: column; gap: 18px; padding: 8px 10px; } .entries-table-container { margin: 18px 8px; } .sidebar { width: 54vw; min-width: 140px; } .main { padding: 0; } }
+    @media (max-width: 600px) { .header { font-size: 1.2em; padding: 12px 6px 6px 0; } .entries-table-container { font-size: 0.95em; } .sidebar { width: 98vw; min-width: 110px; } }
+    ::-webkit-scrollbar { width: 7px; background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #c3c6d1; border-radius: 7px; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- טעינה נכונה של Hebcal (לא לגעת) -->
+  <!-- hebrew-date ספריה (חובה) -->
   <script src="https://cdn.jsdelivr.net/npm/@hebcal/core/dist/bundle.min.js"></script>
 </head>
 <body>
   <div class="app-container">
-    <!-- ... (התפריט, טבלאות, וכו' - הכל נשאר) ... -->
     <aside class="sidebar">
       <h2>מעקב לימוד</h2>
       <div class="categories" id="categories"></div>
@@ -23,22 +70,22 @@
         <input type="text" id="new-category" placeholder="הוסף קטגוריה..." maxlength="18">
       </form>
     </aside>
-    <main class="main" id="main-content"></main>
+    <main class="main" id="main-content">
+      <!-- נטען דינמית -->
+    </main>
   </div>
   <script>
-    // מציג תאריך עברי/לועזי
+    // תצוגת תאריך - לועזי/עברי
     let useHebrewDates = false;
     function formatDate(dateStr) {
-      if (!dateStr) return "";
+      if(!dateStr) return "";
       if (!useHebrewDates) {
         const [year, month, day] = dateStr.split("-");
         return `${day}-${month}-${year}`;
       } else {
         try {
-          // Hebcal צריך להיות טעון - בודקים!
-          if (typeof Hebcal === "object" && typeof Hebcal.HDate === "function") {
-            const [year, month, day] = dateStr.split("-");
-            // יוצרים תאריך ומציגים עברית
+          const [year, month, day] = dateStr.split("-");
+          if (typeof Hebcal !== "undefined" && Hebcal.HDate) {
             const dt = new Hebcal.HDate(new Date(+year, +month-1, +day));
             return dt.renderHebrewDate("h");
           } else {
@@ -48,7 +95,7 @@
       }
     }
 
-    // שאר הקוד שלך בדיוק כפי שהוא:
+    // משתנים גלובליים
     const DEFAULT_CATEGORIES = [
       "תורה", "נביאים", "כתובים", "משנה", "גמרא", "גאונים",
       "ראשונים", "אחרונים", "מוסר"
