@@ -1,70 +1,328 @@
-:
-
-זה הקוד תבדוק אותו 
-
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>מעקב לימוד</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { margin: 0; font-family: 'Heebo', Arial, sans-serif; background: #f8fafc; color: #1a202c; direction: rtl; }
-    .app-container { display: flex; min-height: 100vh; }
-    .sidebar { width: 230px; background: #2d3748; color: #fff; display: flex; flex-direction: column; align-items: stretch; padding: 0; box-shadow: 2px 0 6px #0001; z-index: 1;}
-    .sidebar h2 { margin: 0; padding: 28px 0 14px 0; text-align: center; letter-spacing: 1px; font-size: 1.2em; font-weight: 800; background: #1a202c;}
-    .categories { flex: 1; overflow-y: auto; padding-bottom: 16px; }
-    .category { padding: 12px 24px; cursor: pointer; border-right: 6px solid transparent; font-size: 1.1em; transition: background 0.18s, border-color 0.18s; display: flex; align-items: center; justify-content: space-between;}
-    .category.selected { background: #4fd1c5; color: #222; border-right: 6px solid #319795;}
-    .category .remove-btn { background: transparent; border: none; color: #e53e3e; cursor: pointer; margin-right: 8px; font-size: 1.1em; display: none;}
-    .category.custom .remove-btn { display: inline;}
-    .add-category-form { display: flex; flex-direction: row-reverse; gap: 6px; padding: 12px 18px 16px 18px; border-top: 1px solid #3a4048; background: #23272f;}
-    .add-category-form input { flex: 1; padding: 6px 10px; font-size: 1em; border-radius: 6px; border: none; outline: none;}
-    .add-category-form button { background: #38b2ac; border: none; color: #fff; font-weight: bold; border-radius: 6px; padding: 6px 13px; cursor: pointer; transition: background 0.18s;}
-    .add-category-form button:hover { background: #319795;}
-    .main { flex: 1; display: flex; flex-direction: column; padding: 0 0 32px 0; overflow-x: hidden;}
-    .header { padding: 22px 34px 8px 0; font-size: 2.1em; font-weight: bold; color: #283048; letter-spacing: 0.03em;}
-    .dashboard-graphs { display: flex; gap: 32px; padding: 8px 40px 18px 40px; flex-wrap: wrap; justify-content: flex-start;}
-    .dashboard-graphs > div { background: #fff; border-radius: 20px; box-shadow: 0 2px 8px #0001; padding: 18px 12px 8px 12px; min-width: 300px; min-height: 290px; flex: 1 1 350px; display: flex; flex-direction: column; align-items: center;}
-    .add-btn { background: #4299e1; color: #fff; border: none; padding: 7px 16px; border-radius: 10px; font-size: 1.13em; font-weight: 700; margin: 12px 48px 8px 0; cursor: pointer; transition: background 0.18s; box-shadow: 0 2px 8px #0001;}
-    .add-btn:hover { background: #3182ce; }
-    .entries-table-container { background: #fff; border-radius: 16px; margin: 20px 40px 0 40px; padding: 10px 0; box-shadow: 0 2px 12px #0001; overflow-x: auto;}
-    .toggle-date-btn { background: #f6ad55; color: #222; border: none; padding: 6px 14px; border-radius: 8px; font-size: 1em; font-weight: 700; cursor: pointer; margin: 0 0 8px 0; transition: background 0.18s;}
-    .toggle-date-btn:hover { background: #fbbf24; }
-    table { width: 100%; border-collapse: collapse; font-size: 1.03em; background: #fff;}
-    thead { background: #e6fffa;}
-    th, td { padding: 8px 12px; text-align: right; border-bottom: 1px solid #f1f1f1;}
-    th { font-weight: 700;}
-    tr:last-child td { border-bottom: none;}
-    .edit-btn, .del-btn { background: transparent; border: none; font-size: 1.13em; cursor: pointer; margin-left: 8px;}
-    .edit-btn { color: #319795;}
-    .del-btn { color: #e53e3e;}
-    .timer-btn { background:#4299e1; color:#fff; padding:3px 9px; border-radius:7px; border:none; cursor:pointer; font-size:1em; margin-right:5px;}
-    .modal-bg { position: fixed; top: 0; right: 0; left: 0; bottom: 0; background: #0009; display: flex; align-items: center; justify-content: center; z-index: 10;}
-    .modal { background: #fff; border-radius: 18px; min-width: 310px; max-width: 95vw; padding: 26px 26px 18px 26px; box-shadow: 0 4px 20px #0002; animation: fadeIn 0.24s;}
-    @keyframes fadeIn { from { opacity: 0; } }
-    .modal label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 1.03em;}
-    .modal input, .modal textarea { width: 100%; margin-bottom: 16px; padding: 8px 10px; border-radius: 7px; border: 1px solid #d3e0ee; font-size: 1em; box-sizing: border-box;}
-    .modal textarea { resize: vertical; min-height: 60px; }
-    .modal-btns { display: flex; justify-content: flex-end; gap: 10px;}
-    .modal-btns button { padding: 7px 16px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 1.02em;}
-    .modal-btns .ok-btn { background: #38b2ac; color: #fff;}
-    .modal-btns .cancel-btn { background: #f2f2f2; color: #222;}
-    @media (max-width: 900px) { .dashboard-graphs { flex-direction: column; gap: 18px; padding: 8px 10px; } .entries-table-container { margin: 18px 8px; } .sidebar { width: 54vw; min-width: 140px; } .main { padding: 0; } }
-    @media (max-width: 600px) { .header { font-size: 1.2em; padding: 12px 6px 6px 0; } .entries-table-container { font-size: 0.95em; } .sidebar { width: 98vw; min-width: 110px; } }
-    ::-webkit-scrollbar { width: 7px; background: #f1f1f1; }
-    ::-webkit-scrollbar-thumb { background: #c3c6d1; border-radius: 7px; }
+    body {
+      margin: 0;
+      font-family: "Heebo", Arial, sans-serif;
+      background: #f8fafc;
+      color: #1a202c;
+      direction: rtl;
+    }
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+    .sidebar {
+      width: 230px;
+      background: #2d3748;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 0;
+      box-shadow: 2px 0 6px #0001;
+      z-index: 1;
+    }
+    .sidebar h2 {
+      margin: 0;
+      padding: 28px 0 14px 0;
+      text-align: center;
+      letter-spacing: 1px;
+      font-size: 1.2em;
+      font-weight: 800;
+      background: #1a202c;
+    }
+    .categories {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 16px;
+    }
+    .category {
+      padding: 12px 24px;
+      cursor: pointer;
+      border-right: 6px solid transparent;
+      font-size: 1.1em;
+      transition: background 0.18s, border-color 0.18s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .category.selected {
+      background: #4fd1c5;
+      color: #222;
+      border-right: 6px solid #319795;
+    }
+    .category .remove-btn {
+      background: transparent;
+      border: none;
+      color: #e53e3e;
+      cursor: pointer;
+      margin-right: 8px;
+      font-size: 1.1em;
+      display: none;
+    }
+    .category.custom .remove-btn {
+      display: inline;
+    }
+    .add-category-form {
+      display: flex;
+      flex-direction: row-reverse;
+      gap: 6px;
+      padding: 12px 18px 16px 18px;
+      border-top: 1px solid #3a4048;
+      background: #23272f;
+    }
+    .add-category-form input {
+      flex: 1;
+      padding: 6px 10px;
+      font-size: 1em;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+    }
+    .add-category-form button {
+      background: #38b2ac;
+      border: none;
+      color: #fff;
+      font-weight: bold;
+      border-radius: 6px;
+      padding: 6px 13px;
+      cursor: pointer;
+      transition: background 0.18s;
+    }
+    .add-category-form button:hover {
+      background: #319795;
+    }
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 0 0 32px 0;
+      overflow-x: hidden;
+    }
+    .header {
+      padding: 22px 34px 8px 0;
+      font-size: 2.1em;
+      font-weight: bold;
+      color: #283048;
+      letter-spacing: 0.03em;
+    }
+    .dashboard-graphs {
+      display: flex;
+      gap: 32px;
+      padding: 8px 40px 18px 40px;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+    .dashboard-graphs > div {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 2px 8px #0001;
+      padding: 18px 12px 8px 12px;
+      min-width: 300px;
+      min-height: 290px;
+      flex: 1 1 350px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .add-btn {
+      background: #4299e1;
+      color: #fff;
+      border: none;
+      padding: 7px 16px;
+      border-radius: 10px;
+      font-size: 1.13em;
+      font-weight: 700;
+      margin: 12px 48px 8px 0;
+      cursor: pointer;
+      transition: background 0.18s;
+      box-shadow: 0 2px 8px #0001;
+    }
+    .add-btn:hover {
+      background: #3182ce;
+    }
+    .entries-table-container {
+      background: #fff;
+      border-radius: 16px;
+      margin: 20px 40px 0 40px;
+      padding: 10px 0;
+      box-shadow: 0 2px 12px #0001;
+      overflow-x: auto;
+    }
+    .toggle-date-btn {
+      background: #f6ad55;
+      color: #222;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 1em;
+      font-weight: 700;
+      cursor: pointer;
+      margin: 0 0 8px 0;
+      transition: background 0.18s;
+    }
+    .toggle-date-btn:hover {
+      background: #fbbf24;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 1.03em;
+      background: #fff;
+    }
+    thead {
+      background: #e6fffa;
+    }
+    th,
+    td {
+      padding: 8px 12px;
+      text-align: right;
+      border-bottom: 1px solid #f1f1f1;
+    }
+    th {
+      font-weight: 700;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    .edit-btn,
+    .del-btn {
+      background: transparent;
+      border: none;
+      font-size: 1.13em;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+    .edit-btn {
+      color: #319795;
+    }
+    .del-btn {
+      color: #e53e3e;
+    }
+    .timer-btn {
+      background: #4299e1;
+      color: #fff;
+      padding: 3px 9px;
+      border-radius: 7px;
+      border: none;
+      cursor: pointer;
+      font-size: 1em;
+      margin-right: 5px;
+    }
+    .modal-bg {
+      position: fixed;
+      top: 0;
+      right: 0;
+      left: 0;
+      bottom: 0;
+      background: #0009;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    .modal {
+      background: #fff;
+      border-radius: 18px;
+      min-width: 310px;
+      max-width: 95vw;
+      padding: 26px 26px 18px 26px;
+      box-shadow: 0 4px 20px #0002;
+      animation: fadeIn 0.24s;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+    }
+    .modal label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 1.03em;
+    }
+    .modal input,
+    .modal textarea {
+      width: 100%;
+      margin-bottom: 16px;
+      padding: 8px 10px;
+      border-radius: 7px;
+      border: 1px solid #d3e0ee;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+    .modal textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+    .modal-btns {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .modal-btns button {
+      padding: 7px 16px;
+      border-radius: 8px;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1.02em;
+    }
+    .modal-btns .ok-btn {
+      background: #38b2ac;
+      color: #fff;
+    }
+    .modal-btns .cancel-btn {
+      background: #f2f2f2;
+      color: #222;
+    }
+    @media (max-width: 900px) {
+      .dashboard-graphs {
+        flex-direction: column;
+        gap: 18px;
+        padding: 8px 10px;
+      }
+      .entries-table-container {
+        margin: 18px 8px;
+      }
+      .sidebar {
+        width: 54vw;
+        min-width: 140px;
+      }
+      .main {
+        padding: 0;
+      }
+    }
+    @media (max-width: 600px) {
+      .header {
+        font-size: 1.2em;
+        padding: 12px 6px 6px 0;
+      }
+      .entries-table-container {
+        font-size: 0.95em;
+      }
+      .sidebar {
+        width: 98vw;
+        min-width: 110px;
+      }
+    }
+    ::-webkit-scrollbar {
+      width: 7px;
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c3c6d1;
+      border-radius: 7px;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- hebrew-date ספריה (חובה) -->
-  <script>
-  // הופך את Hebcal לגלובלי (אם לא כבר)
-  if (typeof window.Hebcal === "undefined" && typeof hebcal !== "undefined") {
-    window.Hebcal = hebcal;
-  }
-</script>
-
+  <!-- Hebcal ספריית תאריכים עבריים -->
+  <script src="bundle.min.js"></script>
 </head>
 <body>
   <div class="app-container">
@@ -73,7 +331,12 @@
       <div class="categories" id="categories"></div>
       <form class="add-category-form" id="add-category-form" autocomplete="off">
         <button type="submit">+</button>
-        <input type="text" id="new-category" placeholder="הוסף קטגוריה..." maxlength="18">
+        <input
+          type="text"
+          id="new-category"
+          placeholder="הוסף קטגוריה..."
+          maxlength="18"
+        />
       </form>
     </aside>
     <main class="main" id="main-content">
@@ -83,66 +346,78 @@
   <script>
     // תצוגת תאריך - לועזי/עברי
     let useHebrewDates = false;
-function formatDate(dateStr) {
-  if (!dateStr) return "";
-  if (!useHebrewDates) {
-    const [year, month, day] = dateStr.split("-");
-    return `${day}-${month}-${year}`;
-  } else {
-    try {
-      if (typeof hebcal === "object" && typeof Hebcal.HDate === "function") {
+    function formatDate(dateStr) {
+      if (!dateStr) return "";
+      if (!useHebrewDates) {
         const [year, month, day] = dateStr.split("-");
-        // בדיקה שהתאריכים תקינים
-        if (
-          !year || !month || !day ||
-          isNaN(+year) || isNaN(+month) || isNaN(+day)
-        ) return "[שגיאה בתאריך]";
-        const dt = new Hebcal.HDate(new Date(+year, +month-1, +day));
-        return dt.renderHebrewDate("h");
+        return `${day}-${month}-${year}`;
       } else {
-        return "[hebcal לא נטען]";
+        try {
+          if (typeof hebcal === "object" && typeof hebcal.HDate === "function") {
+            const [year, month, day] = dateStr.split("-");
+            if (
+              !year ||
+              !month ||
+              !day ||
+              isNaN(+year) ||
+              isNaN(+month) ||
+              isNaN(+day)
+            )
+              return "[שגיאה בתאריך]";
+            const dt = new hebcal.HDate(new Date(+year, +month - 1, +day));
+            return dt.renderHebrewDate("h");
+          } else {
+            return "[hebcal לא נטען]";
+          }
+        } catch (e) {
+          return "[שגיאה בתאריך]";
+        }
       }
-    } catch(e) {
-      return "[שגיאה בתאריך]";
     }
-  }
-}
-
 
     // משתנים גלובליים
     const DEFAULT_CATEGORIES = [
-      "תורה", "נביאים", "כתובים", "משנה", "גמרא", "גאונים",
-      "ראשונים", "אחרונים", "מוסר"
+      "תורה",
+      "נביאים",
+      "כתובים",
+      "משנה",
+      "גמרא",
+      "גאונים",
+      "ראשונים",
+      "אחרונים",
+      "מוסר",
     ];
     let selectedCategory = null;
     let pieChart, lineChart;
     let runningTimers = {};
 
     function getCategories() {
-      let custom = JSON.parse(localStorage.getItem('customCategories') || '[]');
+      let custom = JSON.parse(localStorage.getItem("customCategories") || "[]");
       return [...DEFAULT_CATEGORIES, ...custom];
     }
     function setCustomCategories(arr) {
-      localStorage.setItem('customCategories', JSON.stringify(arr));
+      localStorage.setItem("customCategories", JSON.stringify(arr));
     }
     function getEntries() {
-      return JSON.parse(localStorage.getItem('studyEntries') || '[]');
+      return JSON.parse(localStorage.getItem("studyEntries") || "[]");
     }
     function setEntries(arr) {
-      localStorage.setItem('studyEntries', JSON.stringify(arr));
+      localStorage.setItem("studyEntries", JSON.stringify(arr));
     }
 
     function renderCategories() {
       const cats = getCategories();
-      const cont = document.getElementById('categories');
+      const cont = document.getElementById("categories");
       cont.innerHTML = "";
-      cats.forEach(cat => {
-        const div = document.createElement('div');
-        div.className = 'category' + (selectedCategory === cat ? ' selected' : '') +
-          (DEFAULT_CATEGORIES.includes(cat) ? '' : ' custom');
+      cats.forEach((cat) => {
+        const div = document.createElement("div");
+        div.className =
+          "category" +
+          (selectedCategory === cat ? " selected" : "") +
+          (DEFAULT_CATEGORIES.includes(cat) ? "" : " custom");
         div.textContent = cat;
         if (!DEFAULT_CATEGORIES.includes(cat)) {
-          const btn = document.createElement('button');
+          const btn = document.createElement("button");
           btn.className = "remove-btn";
           btn.title = "הסר קטגוריה";
           btn.textContent = "✖";
@@ -161,21 +436,21 @@ function formatDate(dateStr) {
       });
       if (!selectedCategory) selectedCategory = null;
     }
-    document.getElementById('add-category-form').onsubmit = function(e){
+    document.getElementById("add-category-form").onsubmit = function (e) {
       e.preventDefault();
-      const val = document.getElementById('new-category').value.trim();
-      if(!val || getCategories().includes(val)) return;
-      let custom = JSON.parse(localStorage.getItem('customCategories') || '[]');
+      const val = document.getElementById("new-category").value.trim();
+      if (!val || getCategories().includes(val)) return;
+      let custom = JSON.parse(localStorage.getItem("customCategories") || "[]");
       custom.push(val);
       setCustomCategories(custom);
-      document.getElementById('new-category').value = "";
+      document.getElementById("new-category").value = "";
       renderCategories();
     };
     function removeCategory(cat) {
-      let custom = JSON.parse(localStorage.getItem('customCategories') || '[]');
-      custom = custom.filter(c => c !== cat);
+      let custom = JSON.parse(localStorage.getItem("customCategories") || "[]");
+      custom = custom.filter((c) => c !== cat);
       setCustomCategories(custom);
-      let entries = getEntries().filter(e => e.category !== cat);
+      let entries = getEntries().filter((e) => e.category !== cat);
       setEntries(entries);
       if (selectedCategory === cat) selectedCategory = null;
       renderCategories();
@@ -184,7 +459,7 @@ function formatDate(dateStr) {
     }
 
     function renderMain() {
-      const main = document.getElementById('main-content');
+      const main = document.getElementById("main-content");
       if (!selectedCategory) {
         main.innerHTML = `
           <div class="header">סיכום לימוד</div>
@@ -201,22 +476,30 @@ function formatDate(dateStr) {
           <button class="add-btn" onclick="openEntryModal()">+ הוסף לימוד</button>
           <div style="margin-right:45px;">
             <button class="toggle-date-btn" onclick="toggleDateFormat(); return false;">
-              ${useHebrewDates ? "הצג תאריך לועזי" : "הצג תאריך עברי"}
+              ${
+                useHebrewDates ? "הצג תאריך לועזי" : "הצג תאריך עברי"
+              }
             </button>
           </div>
           <div class="entries-table-container" id="entries-table-container"></div>
         `;
-        renderEntries(); updateCharts();
+        renderEntries();
+        updateCharts();
       } else {
         main.innerHTML = `
           <div style="display:flex;align-items:center;gap:20px;margin:22px 0 16px 0;padding-right:34px;">
             <button onclick="backToMain()" style="background:#e2e8f0;border:none;color:#283048;font-weight:700;border-radius:9px;padding:7px 22px;cursor:pointer;font-size:1em;">חזור</button>
             <span class="header" style="margin:0;">${selectedCategory}</span>
           </div>
-          <button class="add-btn" onclick="openEntryModalForCat('${selectedCategory.replace(/'/g,"\\'")}')">+ הוסף לימוד</button>
+          <button class="add-btn" onclick="openEntryModalForCat('${selectedCategory.replace(
+            /'/g,
+            "\\'"
+          )}')">+ הוסף לימוד</button>
           <div style="margin-right:45px;">
             <button class="toggle-date-btn" onclick="toggleDateFormat(); return false;">
-              ${useHebrewDates ? "הצג תאריך לועזי" : "הצג תאריך עברי"}
+              ${
+                useHebrewDates ? "הצג תאריך לועזי" : "הצג תאריך עברי"
+              }
             </button>
           </div>
           <div class="entries-table-container" id="entries-table-container"></div>
@@ -236,30 +519,43 @@ function formatDate(dateStr) {
 
     function renderEntries(catFilter = null) {
       let entries = getEntries();
-      let filtered = catFilter ? entries.filter(e => e.category === catFilter) : entries;
-      const cont = document.getElementById('entries-table-container');
+      let filtered = catFilter
+        ? entries.filter((e) => e.category === catFilter)
+        : entries;
+      const cont = document.getElementById("entries-table-container");
       let html = "<table><thead><tr>";
-      html += "<th>תאריך</th><th>קטגוריה</th><th>ספר/נושא</th><th>פרק/דף</th><th>דקות</th><th>הערות</th><th></th></tr></thead><tbody>";
-      if(filtered.length === 0){
+      html +=
+        "<th>תאריך</th><th>קטגוריה</th><th>ספר/נושא</th><th>פרק/דף</th><th>דקות</th><th>הערות</th><th></th></tr></thead><tbody>";
+      if (filtered.length === 0) {
         html += `<tr><td colspan="7" style="text-align:center;color:#aaa">אין נתונים</td></tr>`;
       } else {
-        filtered.forEach((e,i) => {
+        filtered.forEach((e, i) => {
           html += `<tr>
             <td>${formatDate(e.date)}</td>
             <td>${e.category}</td>
             <td>${e.title}</td>
             <td>${e.unit}</td>
             <td id="min-cell-${e.id}">
-              ${typeof e.minutes === "number" && e.minutes > 0 ? e.minutes : ""}
+              ${
+                typeof e.minutes === "number" && e.minutes > 0 ? e.minutes : ""
+              }
             </td>
-            <td>${e.notes||''}</td>
+            <td>${e.notes || ""}</td>
             <td>
-              <button class="edit-btn" title="ערוך" onclick="editEntry(${e.id})">✏️</button>
-              <button class="del-btn" title="מחק" onclick="delEntry(${e.id})">🗑️</button>
-              <button class="timer-btn" id="timer-btn-${e.id}" onclick="handleTimerBtn(${e.id})">
+              <button class="edit-btn" title="ערוך" onclick="editEntry(${
+                e.id
+              })">✏️</button>
+              <button class="del-btn" title="מחק" onclick="delEntry(${
+                e.id
+              })">🗑️</button>
+              <button class="timer-btn" id="timer-btn-${
+                e.id
+              }" onclick="handleTimerBtn(${e.id})">
                 ${runningTimers[e.id] ? "סיים" : "⏱️"}
               </button>
-              <span id="timer-show-${e.id}" style="font-size:0.95em;font-weight:600;margin-right:6px;"></span>
+              <span id="timer-show-${
+                e.id
+              }" style="font-size:0.95em;font-weight:600;margin-right:6px;"></span>
             </td>
           </tr>`;
         });
@@ -281,7 +577,7 @@ function formatDate(dateStr) {
         clearInterval(runningTimers[id].intervalId);
         let elapsed = Math.floor((Date.now() - runningTimers[id].startTime) / 1000);
         let mins = Math.max(1, Math.round(elapsed / 60));
-        let entries = getEntries().map(e =>
+        let entries = getEntries().map((e) =>
           e.id === id ? { ...e, minutes: mins } : e
         );
         setEntries(entries);
@@ -291,7 +587,7 @@ function formatDate(dateStr) {
       } else {
         runningTimers[id] = {
           startTime: Date.now(),
-          intervalId: null
+          intervalId: null,
         };
         updateRowTimerDisplay(id);
         runningTimers[id].intervalId = setInterval(() => updateRowTimerDisplay(id), 1000);
@@ -306,58 +602,78 @@ function formatDate(dateStr) {
       let mins = Math.floor((elapsed % 3600) / 60);
       let secs = elapsed % 60;
       let el = document.getElementById("timer-show-" + id);
-      if (el) el.textContent = `${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+      if (el)
+        el.textContent = `${hrs.toString().padStart(2, "0")}:${mins
+          .toString()
+          .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     }
 
-    function openEntryModal(editId=null, forceCategory=null) {
+    function openEntryModal(editId = null, forceCategory = null) {
       let cats = getCategories();
-      let entry = editId!==null ? getEntries().find(e=>e.id===editId) : {};
-      let modal = document.createElement('div');
+      let entry = editId !== null ? getEntries().find((e) => e.id === editId) : {};
+      let modal = document.createElement("div");
       modal.className = "modal-bg";
       modal.innerHTML = `<form class="modal" id="entryForm">
         <label>קטגוריה
-          <select id="cat-sel" required ${forceCategory?'disabled':''}>
-            ${cats.map(cat=>
-              `<option ${((entry.category===cat)||forceCategory===cat)?'selected':''}>${cat}</option>`
-            ).join("")}
+          <select id="cat-sel" required ${forceCategory ? "disabled" : ""}>
+            ${cats
+              .map(
+                (cat) =>
+                  `<option ${
+                    entry.category === cat || forceCategory === cat
+                      ? "selected"
+                      : ""
+                  }>${cat}</option>`
+              )
+              .join("")}
           </select>
         </label>
         <label>תאריך
-          <input type="date" id="date-inp" required value="${entry.date||new Date().toISOString().slice(0,10)}">
+          <input type="date" id="date-inp" required value="${
+            entry.date || new Date().toISOString().slice(0, 10)
+          }">
         </label>
         <label>ספר/נושא
-          <input type="text" id="title-inp" maxlength="24" required value="${entry.title||''}">
+          <input type="text" id="title-inp" maxlength="24" required value="${
+            entry.title || ""
+          }">
         </label>
         <label>פרק/דף
-          <input type="text" id="unit-inp" maxlength="14" value="${entry.unit||''}">
+          <input type="text" id="unit-inp" maxlength="14" value="${
+            entry.unit || ""
+          }">
         </label>
         <label>דקות
-          <input type="number" id="minutes-inp" min="1" max="999" value="${entry.minutes||''}">
+          <input type="number" id="minutes-inp" min="1" max="999" value="${
+            entry.minutes || ""
+          }">
         </label>
         <label>הערות
-          <textarea id="notes-inp" maxlength="100">${entry.notes||''}</textarea>
+          <textarea id="notes-inp" maxlength="100">${entry.notes || ""}</textarea>
         </label>
         <div class="modal-btns">
-          <button type="submit" class="ok-btn">${editId!==null?"שמור":"הוסף"}</button>
+          <button type="submit" class="ok-btn">${
+            editId !== null ? "שמור" : "הוסף"
+          }</button>
           <button type="button" class="cancel-btn" onclick="this.closest('.modal-bg').remove()">ביטול</button>
         </div>
       </form>`;
       document.body.appendChild(modal);
 
-      document.getElementById('entryForm').onsubmit = function(e){
+      document.getElementById("entryForm").onsubmit = function (e) {
         e.preventDefault();
         let ent = {
-          category: forceCategory||document.getElementById('cat-sel').value,
-          date: document.getElementById('date-inp').value,
-          title: document.getElementById('title-inp').value,
-          unit: document.getElementById('unit-inp').value,
-          minutes: +document.getElementById('minutes-inp').value || null,
-          notes: document.getElementById('notes-inp').value,
-          id: editId!==null ? editId : Date.now()
+          category: forceCategory || document.getElementById("cat-sel").value,
+          date: document.getElementById("date-inp").value,
+          title: document.getElementById("title-inp").value,
+          unit: document.getElementById("unit-inp").value,
+          minutes: +document.getElementById("minutes-inp").value || null,
+          notes: document.getElementById("notes-inp").value,
+          id: editId !== null ? editId : Date.now(),
         };
         let entries = getEntries();
-        if(editId!==null) {
-          entries = entries.map(e => e.id===editId ? ent : e);
+        if (editId !== null) {
+          entries = entries.map((e) => (e.id === editId ? ent : e));
         } else {
           entries.push(ent);
         }
@@ -370,10 +686,12 @@ function formatDate(dateStr) {
     function openEntryModalForCat(cat) {
       openEntryModal(null, cat);
     }
-    function editEntry(id) { openEntryModal(id); }
+    function editEntry(id) {
+      openEntryModal(id);
+    }
     function delEntry(id) {
-      if(!confirm("למחוק לימוד זה?")) return;
-      let entries = getEntries().filter(e=>e.id!==id);
+      if (!confirm("למחוק לימוד זה?")) return;
+      let entries = getEntries().filter((e) => e.id !== id);
       setEntries(entries);
       updateCharts();
       renderMain();
@@ -382,52 +700,71 @@ function formatDate(dateStr) {
     function updateCharts() {
       let entries = getEntries();
       let byCat = {};
-      getCategories().forEach(cat=>byCat[cat]=0);
-      entries.forEach(e=>byCat[e.category]=(byCat[e.category]||0)+(+e.minutes||0));
+      getCategories().forEach((cat) => (byCat[cat] = 0));
+      entries.forEach((e) => (byCat[e.category] = (byCat[e.category] || 0) + (+e.minutes || 0)));
       let pieData = {
         labels: Object.keys(byCat),
-        datasets: [{
-          data: Object.values(byCat),
-          backgroundColor: [
-            "#63b3ed","#f687b3","#68d391","#f6ad55","#90cdf4","#fbb6ce","#4fd1c5","#feb2b2","#cbd5e1","#fef08a","#b5f4ff"
-          ],
-        }]
+        datasets: [
+          {
+            data: Object.values(byCat),
+            backgroundColor: [
+              "#63b3ed",
+              "#f687b3",
+              "#68d391",
+              "#f6ad55",
+              "#90cdf4",
+              "#fbb6ce",
+              "#4fd1c5",
+              "#feb2b2",
+              "#cbd5e1",
+              "#fef08a",
+              "#b5f4ff",
+            ],
+          },
+        ],
       };
-      if(document.getElementById('pieChart')) {
-        if(pieChart) pieChart.destroy();
-        pieChart = new Chart(document.getElementById('pieChart'), {
-          type: 'pie',
+      if (document.getElementById("pieChart")) {
+        if (pieChart) pieChart.destroy();
+        pieChart = new Chart(document.getElementById("pieChart"), {
+          type: "pie",
           data: pieData,
           options: {
-            plugins: { legend: { position: 'bottom', labels: { font: { family: 'Heebo,Arial', size:14 }}}},
-          }
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: { font: { family: "Heebo,Arial", size: 14 } },
+              },
+            },
+          },
         });
       }
       let byDate = {};
-      entries.forEach(e=>{
-        byDate[e.date]= (byDate[e.date]||0) + (+e.minutes||0);
+      entries.forEach((e) => {
+        byDate[e.date] = (byDate[e.date] || 0) + (+e.minutes || 0);
       });
       let dates = Object.keys(byDate).sort();
       let lineData = {
         labels: dates,
-        datasets: [{
-          label: 'דקות לימוד',
-          data: dates.map(d=>byDate[d]),
-          fill: false,
-          borderColor: "#4299e1",
-          tension: 0.3,
-          pointRadius: 5,
-        }]
+        datasets: [
+          {
+            label: "דקות לימוד",
+            data: dates.map((d) => byDate[d]),
+            fill: false,
+            borderColor: "#4299e1",
+            tension: 0.3,
+            pointRadius: 5,
+          },
+        ],
       };
-      if(document.getElementById('lineChart')) {
-        if(lineChart) lineChart.destroy();
-        lineChart = new Chart(document.getElementById('lineChart'), {
-          type: 'line',
+      if (document.getElementById("lineChart")) {
+        if (lineChart) lineChart.destroy();
+        lineChart = new Chart(document.getElementById("lineChart"), {
+          type: "line",
           data: lineData,
           options: {
-            plugins: { legend: { display: false }},
-            scales: { y: { beginAtZero: true }},
-          }
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } },
+          },
         });
       }
     }
