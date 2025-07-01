@@ -58,7 +58,13 @@
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- hebrew-date ספריה (חובה) -->
-  <script src="bundle.min.js"></script>
+  <script>
+  // הופך את Hebcal לגלובלי (אם לא כבר)
+  if (typeof window.Hebcal === "undefined" && typeof hebcal !== "undefined") {
+    window.Hebcal = hebcal;
+  }
+</script>
+
 </head>
 <body>
   <div class="app-container">
