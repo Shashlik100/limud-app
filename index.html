@@ -73,22 +73,26 @@
     // תצוגת תאריך - לועזי/עברי
     let useHebrewDates = false;
     function formatDate(dateStr) {
-      if(!dateStr) return "";
-      if (!useHebrewDates) {
-        const [year, month, day] = dateStr.split("-");
-        return `${day}-${month}-${year}`;
+  if (!dateStr) return "";
+  if (!useHebrewDates) {
+    const [year, month, day] = dateStr.split("-");
+    return `${day}-${month}-${year}`;
+  } else {
+    try {
+      const [year, month, day] = dateStr.split("-");
+      // בדוק Hebcal בקונסול
+      console.log("Hebcal:", typeof Hebcal, "HDate:", typeof Hebcal.HDate);
+      if (typeof Hebcal === "object" && typeof Hebcal.HDate === "function") {
+        const dt = new Hebcal.HDate(new Date(+year, +month-1, +day));
+        return dt.renderHebrewDate("h");
       } else {
-        try {
-          const [year, month, day] = dateStr.split("-");
-          if (typeof Hebcal !== "undefined" && Hebcal.HDate) {
-            const dt = new Hebcal.HDate(new Date(+year, +month-1, +day));
-            return dt.renderHebrewDate("h");
-          } else {
-            return "[Hebcal לא נטען]";
-          }
-        } catch(e) { return "[שגיאה בתאריך]"; }
+        return "[Hebcal לא נטען]";
       }
+    } catch(e) {
+      return "[שגיאה בתאריך]";
     }
+  }
+}
 
     // משתנים גלובליים
     const DEFAULT_CATEGORIES = [
